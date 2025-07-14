@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>1-2 CODE?</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <img src="assets/logo/logo.png" alt="Logo" class="logo">
+        <div class="nav-links">
+            <a href="#">Help</a>
+            <a href="#">About Us</a>
+            <a href="#">Terms and Conditions</a>
+        </div>
+    </nav>
+
+    <div class="alarm-section">
+        <h2>Set Alarm</h2>
+        <div class="input-group">
+            <input type="date" id="date-input">
+            <input type="time" id="time-input">
+        </div>
+        <input type="text" id="location-input" placeholder="Search location...">
+        <ul id="suggestions"></ul>
+    </div>
+
+    <button id="save-btn">Save</button>
+
+    <div id="saved-alarm" class="saved-alarm">
+        NO CURRENT ALARM SET
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
