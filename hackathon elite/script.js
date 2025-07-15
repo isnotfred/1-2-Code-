@@ -263,3 +263,41 @@ function setupPopups() {
     document.getElementById('closeAboutBtn').addEventListener('click', closeAllPopups);
     document.getElementById('closeTermsBtn').addEventListener('click', closeAllPopups);
 }
+
+// Date Picker
+flatpickr("#date-input", {
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "F j, Y",
+    allowInput: true
+});
+
+// Time Picker
+flatpickr("#time-input", {
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: "H:i",
+    time_24hr: true,
+    altInput: true,
+    altFormat: "h:i K",
+    allowInput: true
+});
+
+if (window.innerWidth > 768) {
+    flatpickr("#date-input", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        allowInput: true
+    });
+
+    flatpickr("#time-input", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+        altInput: true,
+        altFormat: "h:i K",
+        allowInput: true
+    });
+}

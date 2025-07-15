@@ -30,9 +30,29 @@ html, body {
     z-index: 1000;
 }
 
+/* Logo Section */
 .logo {
     width: 40px;
     height: 40px;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.app-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+
+@media (max-width: 500px) {
+    .app-title {
+        font-size: 1rem;
+    }
 }
 
 .menu-toggle {
@@ -133,6 +153,46 @@ html, body {
     text-align: center;
 }
 
+/* Styled Inputs */
+input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 1rem;
+}
+
+input[type="text"]::placeholder {
+    color: #ccc;
+}
+
+input[type="text"]:hover {
+    border-color: #00bcd4;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Flatpickr Custom Theme */
+.flatpickr-calendar {
+    background: rgba(0, 0, 0, 0.95);
+    border: 1px solid #00bcd4;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+}
+
+.flatpickr-day.today,
+.flatpickr-day.selected {
+    background: #00bcd4;
+    color: black;
+}
+
+.flatpickr-time input,
+.flatpickr-time .numInputWrapper {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
 .alarm-section {
     flex: 1 1 350px;
     max-width: 450px;
@@ -154,7 +214,29 @@ html, body {
     color: #fff;
 }
 
-.input-group input[type="date"],
+input[type="date"] {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 1rem;
+}
+
+input[type="date"]::placeholder {
+    color: #ccc;
+}
+
+input[type="date"]:hover {
+    border-color: #00bcd4;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
 .input-group input[type="time"],
 .input-group input[type="number"] {
     width: 100%;
@@ -375,4 +457,22 @@ h2, h3 {
     .container {
         padding-top: 6rem;
     }
+}
+
+/* === POPUP ANIMATIONS === */
+@keyframes floatUp {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.helppopup,
+.alarm-popup {
+    animation: floatUp 0.3s ease-out forwards;
+    opacity: 0; /* Ensures it fades in */
 }

@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>No More Late Alarm</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
 </head>
 
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <img src="assets/logo/logo.png" alt="Logo" class="logo">
+        <div class="logo-section">
+            <img src="assets/logo/logo.png" alt="Logo" class="logo">
+            <span class="app-title">No More Late Alarm</span>
+        </div>
         <button class="menu-toggle" id="menu-toggle">☰</button>
         <div class="nav-links">
             <a href="javascript:void(0)" id="helpbtn">Help</a>
@@ -34,8 +40,11 @@
         <div class="alarm-section">
             <h2>Set Alarm</h2>
             <div class="input-group">
-                <input type="date" id="date-input">
-                <input type="time" id="time-input">
+                <label for="date-input">Pick Date</label>
+                <input type="date" id="date-input" />
+
+                <label for="time-input">Pick Time</label>
+                <input type="time" id="time-input" />
             </div>
 
             <div class="home-display">
@@ -72,10 +81,11 @@
     <div id="help" class="helppopup">
         <h2>How to Use</h2>
         <p>
-            1️⃣ Click on the map to select your destination.<br><br>
-            2️⃣ Choose your <strong>target arrival date and time</strong>.<br><br>
-            3️⃣ System auto-calculates the wake-up time using traffic, distance, and weather data.<br><br>
-            4️⃣ View your ongoing alarm after saving.<br><br>
+            1️⃣ Choose your <strong>target arrival date and time</strong>.<br><br>
+            2️⃣ Add <strong>preparation time</strong> and <strong>buffer/allowance time</strong> if needed.<br><br>
+            3️⃣ Search to select your destination.<br><br>
+            4️⃣ System auto-calculates the wake-up time using traffic, distance, and weather data.<br><br>
+            5️⃣ View your ongoing alarm after saving.<br><br>
             ✅ Alarms in the past are not allowed.
         </p>
         <button id="closeHelpBtn">Close</button>
@@ -117,5 +127,29 @@
 
     <!-- JS placed at end -->
     <script src="script.js"></script>
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script>
+        // Date Picker
+        flatpickr("#date-input", {
+            altInput: true,
+            altFormat: "F j, Y",
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+
+        // Time Picker with scrollable input
+        flatpickr("#time-input", {
+            enableTime: true,
+            noCalendar: true,
+            altInput: true,
+            altFormat: "h:i K",
+            dateFormat: "H:i",
+            time_24hr: false,
+            allowInput: true,
+            minuteIncrement: 1 
+        });
+    </script>
 </body>
 </html>
