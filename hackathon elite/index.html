@@ -9,9 +9,9 @@
     <nav class="navbar">
         <img src="assets/logo/logo.png" alt="Logo" class="logo">
         <div class="nav-links">
-            <a href="#">Help</a>
-            <a href="#">About Us</a>
-            <a href="#">Terms and Conditions</a>
+            <a href="javascript:void(0)" id="helpbtn">Help</a>
+            <a href="javascript:void(0)">About Us</a>
+            <a href="javascript:void(0)">Terms and Conditions</a>
         </div>
     </nav>
 
@@ -21,7 +21,7 @@
             <input type="date" id="date-input">
             <input type="time" id="time-input">
         </div>
-        <input type="text" id="location-input" placeholder="Search location...">
+        <input type="text" id="location-input" placeholder="Enter target location">
         <ul id="suggestions"></ul>
     </div>
 
@@ -30,6 +30,52 @@
     <div id="saved-alarm" class="saved-alarm">
         NO CURRENT ALARM SET
     </div>
+
+    <div id="help" class="helppopup">
+        <h2>How to Use</h2>
+    <p>
+        1️⃣ Set the <strong>destination</strong> using the location input with autocomplete.<br><br>
+        2️⃣ Choose your <strong>target arrival date and time</strong> — when you need to arrive at the location.<br><br>
+        3️⃣ The system will automatically calculate the necessary <strong>wake-up time</strong> based on <em>distance, traffic, and weather.</em><br><br>
+        4️⃣ Once saved, your current alarm will be shown clearly with the adjusted time, date, and location.<br><br>
+        Example:<br>
+        <em>Ongoing Alarm: 3:28 AM, July 15, Destination: Quezon City</em><br><br>
+        🚨 The system ensures you wake up exactly when needed to leave on time.<br><br>
+        ✅ You cannot set alarms in the past or invalid times.
+    </p>
+    <button id="closeHelpBtn">Close</button>
+    </div>
+
+    <div id="about" class="helppopup">
+    <h2>About Us</h2>
+    <p>
+        We are students from <strong>BSIT 1-2</strong>.<br><br>
+        <strong>Members:</strong><br>
+        • James Angelo Bolaño<br>
+        • Frederick Orlain<br>
+        • Xylon Arroyo<br>
+        • Hero Miralles<br>
+        • Randall Graida<br><br>
+        This project was created to address the real-world problem of unpredictable travel times. 
+        Our goal is to help users manage their schedules more effectively by providing an intelligent alarm system that adapts to traffic, distance, and weather conditions. 
+        It reflects our commitment to using technology to make everyday life smarter and less stressful.
+    </p>
+    <button id="closeAboutBtn">Close</button>
+</div>
+
+<div id="terms" class="helppopup">
+    <h2>Terms and Conditions</h2>
+    <p>
+        1️⃣ By using this website, you agree to provide accurate input for destination and time settings.<br><br>
+        2️⃣ This website does not collect or store any personal information. All data is used solely for providing accurate alarm adjustments.<br><br>
+        3️⃣ While we strive to ensure accuracy, we do not guarantee 100% correctness in travel time predictions due to unpredictable real-world conditions such as sudden traffic or weather changes.<br><br>
+        4️⃣ Users are responsible for verifying any alarm recommendations before relying on them for important events.<br><br>
+        5️⃣ We reserve the right to modify these Terms and Conditions at any time to improve the service.<br><br>
+        6️⃣ By continuing to use this website, you agree to any future updates of these terms.<br><br>
+        7️⃣ Unauthorized reproduction, duplication, or misuse of this website’s system or concept is prohibited.
+    </p>
+    <button id="closeTermsBtn">Close</button>
+</div>
 
     <script src="script.js"></script>
 </body>

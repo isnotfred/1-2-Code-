@@ -5,7 +5,9 @@ const suggestionsList = document.getElementById('suggestions');
 const saveBtn = document.getElementById('save-btn');
 const savedAlarm = document.getElementById('saved-alarm');
 
-// --- Enforce date cannot be today or past ---
+let isLocationSelectedFromDropdown = false;
+
+// Set Min Date (Tomorrow Only)
 function setMinDate() {
     const today = new Date();
     today.setDate(today.getDate() + 1);
@@ -14,53 +16,63 @@ function setMinDate() {
 }
 setMinDate();
 
-// --- Geoapify Autocomplete for PH locations ---
+// LocationIQ Autocomplete (PH Only)
 locationInput.addEventListener('input', async () => {
+    isLocationSelectedFromDropdown = false;
     const query = locationInput.value.trim();
     if (!query) {
         suggestionsList.innerHTML = '';
         return;
     }
 
-    const apiKey = '1dad3ab8f9f042d2b2814079d5f0e282';
-    const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&filter=countrycode:PH&format=json&apiKey=${apiKey}`;
+    const accessToken = 'pk.062878272323e8212f6cc505b589e8b4';
+    const url = `https://api.locationiq.com/v1/autocomplete?key=${accessToken}&q=${encodeURIComponent(query)}&limit=5&dedupe=1`;
 
     try {
         const response = await fetch(url);
         const data = await response.json();
 
         suggestionsList.innerHTML = '';
-        data.features.forEach(feature => {
-            const option = document.createElement('li');
-            option.textContent = feature.properties.formatted;
-            option.addEventListener('click', () => {
-                locationInput.value = feature.properties.formatted;
-                suggestionsList.innerHTML = '';
-            });
-            suggestionsList.appendChild(option);
+
+        data.forEach(location => {
+            if (location.address && location.address.country_code === 'ph') {
+                const option = document.createElement('li');
+                option.textContent = location.display_name;
+                option.addEventListener('click', () => {
+                    locationInput.value = location.display_name;
+                    suggestionsList.innerHTML = '';
+                    isLocationSelectedFromDropdown = true;
+                });
+                suggestionsList.appendChild(option);
+            }
         });
+
+        if (suggestionsList.children.length === 0) {
+            const noResult = document.createElement('li');
+            noResult.textContent = 'No PH locations found';
+            suggestionsList.appendChild(noResult);
+        }
+
     } catch (error) {
-        console.error('Error fetching suggestions:', error);
+        console.error('Autocomplete Error:', error);
     }
 });
 
-// --- Save Alarm Button Functionality ---
+// Save Alarm (No alerts, just block if invalid)
 saveBtn.addEventListener('click', () => {
     const selectedDate = dateInput.value;
     const selectedTime = timeInput.value;
     const location = locationInput.value.trim();
 
-    if (!selectedDate || !selectedTime || !location) {
-        alert('Please fill all fields.');
-        return;
+    if (!selectedDate || !selectedTime || !location || !isLocationSelectedFromDropdown) {
+        return; // Do nothing silently
     }
 
     const now = new Date();
     const alarmDateTime = new Date(`${selectedDate}T${selectedTime}`);
 
     if (alarmDateTime <= now) {
-        alert('Please choose a valid future date and time.');
-        return;
+        return; // Do nothing silently
     }
 
     savedAlarm.innerHTML = `
@@ -69,4 +81,40 @@ saveBtn.addEventListener('click', () => {
         ${selectedDate}<br>
         Destination: ${location}
     `;
+});
+
+// Help Popup
+const helpbtn = document.getElementById('helpbtn');
+const helppopup = document.getElementById('help');
+const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+helpbtn.addEventListener('click', () => {
+    helppopup.style.display = helppopup.style.display === 'none' ? 'block' : 'none';
+});
+closeHelpBtn.addEventListener('click', () => {
+    helppopup.style.display = 'none';
+});
+
+// About Us Popup
+const aboutBtn = document.querySelector('.nav-links a:nth-child(2)');
+const aboutPopup = document.getElementById('about');
+const closeAboutBtn = document.getElementById('closeAboutBtn');
+
+aboutBtn.addEventListener('click', () => {
+    aboutPopup.style.display = 'block';
+});
+closeAboutBtn.addEventListener('click', () => {
+    aboutPopup.style.display = 'none';
+});
+
+// Terms and Conditions Popup
+const termsBtn = document.querySelector('.nav-links a:nth-child(3)');
+const termsPopup = document.getElementById('terms');
+const closeTermsBtn = document.getElementById('closeTermsBtn');
+
+termsBtn.addEventListener('click', () => {
+    termsPopup.style.display = 'block';
+});
+closeTermsBtn.addEventListener('click', () => {
+    termsPopup.style.display = 'none';
 });
