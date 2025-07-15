@@ -2,81 +2,120 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>1-2 CODE?</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No More Late Alarm</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <!-- Navigation Bar -->
     <nav class="navbar">
         <img src="assets/logo/logo.png" alt="Logo" class="logo">
+        <button class="menu-toggle" id="menu-toggle">☰</button>
         <div class="nav-links">
             <a href="javascript:void(0)" id="helpbtn">Help</a>
-            <a href="javascript:void(0)">About Us</a>
-            <a href="javascript:void(0)">Terms and Conditions</a>
+            <a href="javascript:void(0)" id="aboutbtn">About Us</a>
+            <a href="javascript:void(0)" id="termsbtn">Terms</a>
         </div>
     </nav>
 
-    <div class="alarm-section">
-        <h2>Set Alarm</h2>
-        <div class="input-group">
-            <input type="date" id="date-input">
-            <input type="time" id="time-input">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" id="close-sidebar">✕</button>
+        <a href="javascript:void(0)" id="helpbtn-sidebar">Help</a>
+        <a href="javascript:void(0)" id="aboutbtn-sidebar">About Us</a>
+        <a href="javascript:void(0)" id="termsbtn-sidebar">Terms</a>
+    </div>
+
+    <div id="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="alarm-section">
+            <h2>Set Alarm</h2>
+            <div class="input-group">
+                <input type="date" id="date-input">
+                <input type="time" id="time-input">
+            </div>
+
+            <div class="home-display">
+                <label>Your Current Location (Home):</label>
+                <div id="home-display-text">Detecting...</div>
+            </div>
+
+            <div class="input-group">
+                <label for="prep-time">Preparation Time (minutes):</label>
+                <input type="number" id="prep-time" placeholder="e.g. 30" value="30" min="0" step="1" inputmode="numeric" pattern="[0-9]*">
+
+                <label for="buffer-time">Extra Buffer Time (minutes):</label>
+                <input type="number" id="buffer-time" placeholder="e.g. 10" value="10" min="0" step="1" inputmode="numeric" pattern="[0-9]*">
+            </div>
+            
+            <div class="map-section">
+                <h3>Search Destination</h3>
+                
+                <input type="text" id="destination-input" placeholder="Enter destination" />
+                <div id="destination-suggestions" class="suggestions-box"></div>
+                
+                <div id="map-destination-display">No destination selected yet.</div>
+            </div>
+            
+            <button id="save-btn">Save Alarm</button>
+            <div id="saved-alarm" class="saved-alarm">
+                NO CURRENT ALARM SET
+            </div>
         </div>
-        <input type="text" id="location-input" placeholder="Enter target location">
-        <ul id="suggestions"></ul>
+
     </div>
 
-    <button id="save-btn">Save</button>
-
-    <div id="saved-alarm" class="saved-alarm">
-        NO CURRENT ALARM SET
-    </div>
-
+    <!-- Popups -->
     <div id="help" class="helppopup">
         <h2>How to Use</h2>
-    <p>
-        1️⃣ Set the <strong>destination</strong> using the location input with autocomplete.<br><br>
-        2️⃣ Choose your <strong>target arrival date and time</strong> — when you need to arrive at the location.<br><br>
-        3️⃣ The system will automatically calculate the necessary <strong>wake-up time</strong> based on <em>distance, traffic, and weather.</em><br><br>
-        4️⃣ Once saved, your current alarm will be shown clearly with the adjusted time, date, and location.<br><br>
-        Example:<br>
-        <em>Ongoing Alarm: 3:28 AM, July 15, Destination: Quezon City</em><br><br>
-        🚨 The system ensures you wake up exactly when needed to leave on time.<br><br>
-        ✅ You cannot set alarms in the past or invalid times.
-    </p>
-    <button id="closeHelpBtn">Close</button>
+        <p>
+            1️⃣ Click on the map to select your destination.<br><br>
+            2️⃣ Choose your <strong>target arrival date and time</strong>.<br><br>
+            3️⃣ System auto-calculates the wake-up time using traffic, distance, and weather data.<br><br>
+            4️⃣ View your ongoing alarm after saving.<br><br>
+            ✅ Alarms in the past are not allowed.
+        </p>
+        <button id="closeHelpBtn">Close</button>
     </div>
 
     <div id="about" class="helppopup">
-    <h2>About Us</h2>
-    <p>
-        We are students from <strong>BSIT 1-2</strong>.<br><br>
-        <strong>Members:</strong><br>
-        • James Angelo Bolaño<br>
-        • Frederick Orlain<br>
-        • Xylon Arroyo<br>
-        • Hero Miralles<br>
-        • Randall Graida<br><br>
-        This project was created to address the real-world problem of unpredictable travel times. 
-        Our goal is to help users manage their schedules more effectively by providing an intelligent alarm system that adapts to traffic, distance, and weather conditions. 
-        It reflects our commitment to using technology to make everyday life smarter and less stressful.
-    </p>
-    <button id="closeAboutBtn">Close</button>
-</div>
+        <h2>About Us</h2>
+        <p>
+            We are BSIT 1-2 students.<br><br>
+            <strong>Members:</strong><br>
+            • James Angelo Bolaño<br>
+            • Frederick Orlain<br>
+            • Xylon Arroyo<br>
+            • Hero Miralles<br>
+            • Randall Graida<br><br>
+            This project solves unpredictable travel times by adjusting alarms dynamically.
+        </p>
+        <button id="closeAboutBtn">Close</button>
+    </div>
 
-<div id="terms" class="helppopup">
-    <h2>Terms and Conditions</h2>
-    <p>
-        1️⃣ By using this website, you agree to provide accurate input for destination and time settings.<br><br>
-        2️⃣ This website does not collect or store any personal information. All data is used solely for providing accurate alarm adjustments.<br><br>
-        3️⃣ While we strive to ensure accuracy, we do not guarantee 100% correctness in travel time predictions due to unpredictable real-world conditions such as sudden traffic or weather changes.<br><br>
-        4️⃣ Users are responsible for verifying any alarm recommendations before relying on them for important events.<br><br>
-        5️⃣ We reserve the right to modify these Terms and Conditions at any time to improve the service.<br><br>
-        6️⃣ By continuing to use this website, you agree to any future updates of these terms.<br><br>
-        7️⃣ Unauthorized reproduction, duplication, or misuse of this website’s system or concept is prohibited.
-    </p>
-    <button id="closeTermsBtn">Close</button>
-</div>
+    <div id="terms" class="helppopup">
+        <h2>Terms and Conditions</h2>
+        <p>
+            1️⃣ Use valid inputs only.<br><br>
+            2️⃣ Data isn't stored permanently.<br><br>
+            3️⃣ We don't guarantee 100% accuracy in predictions.<br><br>
+            4️⃣ Verify your alarms manually for important events.<br><br>
+            5️⃣ Terms may change for improvements.<br><br>
+            6️⃣ Unauthorized misuse of this concept is prohibited.
+        </p>
+        <button id="closeTermsBtn">Close</button>
+    </div>
 
+    <div id="alarm-popup" class="alarm-popup hidden">
+        <h2>🚨 WAKE UP!</h2>
+        <p>Your optimized alarm time has arrived!</p>
+        <button id="dismiss-alarm-btn">Dismiss Alarm</button>
+    </div>
+
+    <!-- JS placed at end -->
     <script src="script.js"></script>
 </body>
 </html>

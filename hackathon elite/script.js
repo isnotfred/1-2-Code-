@@ -1,120 +1,265 @@
+// === ELEMENT REFERENCES ===
 const dateInput = document.getElementById('date-input');
 const timeInput = document.getElementById('time-input');
-const locationInput = document.getElementById('location-input');
-const suggestionsList = document.getElementById('suggestions');
 const saveBtn = document.getElementById('save-btn');
 const savedAlarm = document.getElementById('saved-alarm');
+const prepTimeInput = document.getElementById('prep-time');
+const bufferTimeInput = document.getElementById('buffer-time');
+const homeDisplayText = document.getElementById('home-display-text');
+const mapDestinationDisplay = document.getElementById('map-destination-display');
+const destinationInput = document.getElementById('destination-input');
+const destinationSuggestions = document.getElementById('destination-suggestions');
 
-let isLocationSelectedFromDropdown = false;
+// === GLOBAL STATE ===
+let homeCoordinates = null;
+let destinationCoordinates = null;
+let alarmTriggered = false;
 
-// Set Min Date (Tomorrow Only)
-function setMinDate() {
-    const today = new Date();
-    today.setDate(today.getDate() + 1);
-    const tomorrow = today.toISOString().split('T')[0];
-    dateInput.min = tomorrow;
+// === Prevent Negative Inputs ===
+prepTimeInput.addEventListener('input', () => {
+    if (prepTimeInput.value < 0) prepTimeInput.value = 0;
+});
+
+bufferTimeInput.addEventListener('input', () => {
+    if (bufferTimeInput.value < 0) bufferTimeInput.value = 0;
+});
+
+// === ALARM SOUND SETUP ===
+const alarmAudio = new Audio('assets/sounds/alarm.mp3');
+if (Notification.permission !== 'granted') {
+    Notification.requestPermission();
 }
-setMinDate();
 
-// LocationIQ Autocomplete (PH Only)
-locationInput.addEventListener('input', async () => {
-    isLocationSelectedFromDropdown = false;
-    const query = locationInput.value.trim();
+// === SET MIN DATE ===
+(() => {
+    const today = new Date();
+    today.setDate(today.getDate());
+    dateInput.min = today.toISOString().split('T')[0];
+})();
+
+// === DETECT HOME COORDINATES ===
+navigator.geolocation.getCurrentPosition(
+    (position) => {
+        homeCoordinates = `${position.coords.latitude},${position.coords.longitude}`;
+        homeDisplayText.textContent = `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
+    },
+    () => {
+        homeDisplayText.textContent = '❌ Location detection failed.';
+    }
+);
+
+// === DESTINATION SEARCH: Railway API Proxy ===
+destinationInput.addEventListener('input', async () => {
+    const query = destinationInput.value.trim();
     if (!query) {
-        suggestionsList.innerHTML = '';
+        destinationSuggestions.innerHTML = '';
         return;
     }
 
-    const accessToken = 'pk.062878272323e8212f6cc505b589e8b4';
-    const url = `https://api.locationiq.com/v1/autocomplete?key=${accessToken}&q=${encodeURIComponent(query)}&limit=5&dedupe=1`;
+    const apiUrl = `https://no-more-late-alarm-api-production.up.railway.app/geocode?query=${encodeURIComponent(query)}`;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(apiUrl);
         const data = await response.json();
+        destinationSuggestions.innerHTML = '';
 
-        suggestionsList.innerHTML = '';
-
-        data.forEach(location => {
-            if (location.address && location.address.country_code === 'ph') {
-                const option = document.createElement('li');
-                option.textContent = location.display_name;
-                option.addEventListener('click', () => {
-                    locationInput.value = location.display_name;
-                    suggestionsList.innerHTML = '';
-                    isLocationSelectedFromDropdown = true;
-                });
-                suggestionsList.appendChild(option);
-            }
-        });
-
-        if (suggestionsList.children.length === 0) {
-            const noResult = document.createElement('li');
-            noResult.textContent = 'No PH locations found';
-            suggestionsList.appendChild(noResult);
+        if (!data.results || data.results.length === 0) {
+            destinationSuggestions.innerHTML = '<div>No results found.</div>';
+            return;
         }
 
+        data.results.forEach(result => {
+            const suggestion = document.createElement('div');
+            suggestion.textContent = result.formatted;
+            suggestion.addEventListener('click', () => {
+                destinationCoordinates = `${result.geometry.lat},${result.geometry.lng}`;
+                destinationInput.value = result.formatted;
+                mapDestinationDisplay.textContent = `Destination: ${result.formatted}`;
+                destinationSuggestions.innerHTML = '';
+            });
+            destinationSuggestions.appendChild(suggestion);
+        });
+
     } catch (error) {
-        console.error('Autocomplete Error:', error);
+        destinationSuggestions.innerHTML = '<div>❌ Failed to load suggestions</div>';
     }
 });
 
-// Save Alarm (No alerts, just block if invalid)
-saveBtn.addEventListener('click', () => {
-    const selectedDate = dateInput.value;
-    const selectedTime = timeInput.value;
-    const location = locationInput.value.trim();
-
-    if (!selectedDate || !selectedTime || !location || !isLocationSelectedFromDropdown) {
-        return; // Do nothing silently
+// === SAVE BUTTON ===
+saveBtn.addEventListener('click', async () => {
+    if (!dateInput.value || !timeInput.value || !destinationCoordinates || !homeCoordinates) {
+        alert('⚠️ Complete all fields and select a destination.');
+        return;
     }
 
     const now = new Date();
-    const alarmDateTime = new Date(`${selectedDate}T${selectedTime}`);
-
+    const alarmDateTime = new Date(`${dateInput.value}T${timeInput.value}`);
     if (alarmDateTime <= now) {
-        return; // Do nothing silently
+        alert('⚠️ Alarms cannot be set in the past.');
+        return;
     }
 
-    savedAlarm.innerHTML = `
-        <strong>Ongoing Alarm:</strong><br>
-        ${selectedTime}<br>
-        ${selectedDate}<br>
-        Destination: ${location}
-    `;
+    const details = {
+        homeCoordinates,
+        destinationCoordinates,
+        eventTime: alarmDateTime.getTime(),
+        preparationTime: parseInt(prepTimeInput.value) || 0,
+        userBufferTime: parseInt(bufferTimeInput.value) || 0
+    };
+
+    await fetchAndDisplayAlarm(details, true);
 });
 
-// Help Popup
-const helpbtn = document.getElementById('helpbtn');
-const helppopup = document.getElementById('help');
-const closeHelpBtn = document.getElementById('closeHelpBtn');
+// === FETCH FROM API AND DISPLAY ALARM ===
+async function fetchAndDisplayAlarm(details, saveToStorage) {
+    const apiUrl = `https://no-more-late-alarm-api-production.up.railway.app/alarm-time` +
+        `?origin=${encodeURIComponent(details.homeCoordinates)}` +
+        `&destination=${encodeURIComponent(details.destinationCoordinates)}` +
+        `&preparationTime=${details.preparationTime}` +
+        `&userBufferTime=${details.userBufferTime}`;
 
-helpbtn.addEventListener('click', () => {
-    helppopup.style.display = helppopup.style.display === 'none' ? 'block' : 'none';
-});
-closeHelpBtn.addEventListener('click', () => {
-    helppopup.style.display = 'none';
+    try {
+        const apiResponse = await fetch(apiUrl);
+
+        if (!apiResponse.ok) throw new Error(`API error: ${apiResponse.status}`);
+
+        const apiData = await apiResponse.json();
+        const adjustmentMinutes = apiData.totalAdjustmentTimeMinutes;
+
+        if (!adjustmentMinutes || isNaN(adjustmentMinutes)) {
+            throw new Error('Invalid response from API.');
+        }
+
+        const recommendedWakeUp = new Date(details.eventTime - adjustmentMinutes * 60000);
+        const recommendedTimeStr = recommendedWakeUp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const recommendedDateStr = recommendedWakeUp.toLocaleDateString();
+
+        savedAlarm.innerHTML = `
+            <strong>Ongoing Alarm:</strong><br>
+            ${recommendedTimeStr}<br>
+            ${recommendedDateStr}<br>
+            Destination: ${destinationInput.value || 'Map Selected'}<br>
+            (Alarm set ${adjustmentMinutes} minutes earlier)
+        `;
+
+        if (saveToStorage) {
+            localStorage.setItem('alarmDetails', JSON.stringify(details));
+            localStorage.setItem('recommendedWakeupTime', recommendedWakeUp.getTime());
+            alarmTriggered = false;
+        }
+
+    } catch (error) {
+        console.error(error);
+        savedAlarm.innerHTML = `<span style="color:red">❌ Failed to fetch alarm time.<br>${error.message}</span>`;
+    }
+}
+
+// === WAKE-UP ALERT ===
+const alarmPopup = document.getElementById('alarm-popup');
+const dismissAlarmBtn = document.getElementById('dismiss-alarm-btn');
+
+function triggerWakeUpAlert() {
+    alarmAudio.loop = true;
+    alarmAudio.play();
+
+    alarmPopup.classList.add('show');
+}
+
+dismissAlarmBtn.addEventListener('click', () => {
+    alarmAudio.pause();
+    alarmAudio.currentTime = 0;  // Reset audio
+    alarmPopup.classList.remove('show');
+
+    // Optional: reset alarm state
+    localStorage.removeItem('alarmDetails');
+    localStorage.removeItem('recommendedWakeupTime');
+    alarmTriggered = false;
+    savedAlarm.innerHTML = 'NO CURRENT ALARM SET';
 });
 
-// About Us Popup
-const aboutBtn = document.querySelector('.nav-links a:nth-child(2)');
-const aboutPopup = document.getElementById('about');
-const closeAboutBtn = document.getElementById('closeAboutBtn');
+// === AUTO-UPDATE & ALARM CHECKER ===
+async function checkForAutoUpdate() {
+    const alarmDetails = JSON.parse(localStorage.getItem('alarmDetails'));
+    if (!alarmDetails) return;
 
-aboutBtn.addEventListener('click', () => {
-    aboutPopup.style.display = 'block';
-});
-closeAboutBtn.addEventListener('click', () => {
-    aboutPopup.style.display = 'none';
+    const now = Date.now();
+    const timeBeforeEvent = alarmDetails.eventTime - now;
+
+    if (timeBeforeEvent > 3600000 && timeBeforeEvent < 7200000) {
+        await fetchAndDisplayAlarm(alarmDetails, false);
+    }
+
+    if (!alarmTriggered) {
+        const recommendedWakeupTime = parseInt(localStorage.getItem('recommendedWakeupTime'));
+        if (recommendedWakeupTime && now >= recommendedWakeupTime) {
+            triggerWakeUpAlert();
+            alarmTriggered = true;
+        }
+    }
+}
+
+setInterval(checkForAutoUpdate, 60000);
+
+window.addEventListener('DOMContentLoaded', () => {
+    // Sidebar Toggle Elements
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const closeSidebar = document.getElementById('close-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    // Sidebar Toggle Logic
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.add('show');
+        overlay.classList.add('show');
+    });
+
+    closeSidebar.addEventListener('click', () => {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+    });
+
+    // Setup Popups After Sidebar Setup
+    setupPopups();
 });
 
-// Terms and Conditions Popup
-const termsBtn = document.querySelector('.nav-links a:nth-child(3)');
-const termsPopup = document.getElementById('terms');
-const closeTermsBtn = document.getElementById('closeTermsBtn');
+// === POPUPS ===
+function setupPopups() {
+    const popups = {
+        help: document.getElementById('help'),
+        about: document.getElementById('about'),
+        terms: document.getElementById('terms')
+    };
 
-termsBtn.addEventListener('click', () => {
-    termsPopup.style.display = 'block';
-});
-closeTermsBtn.addEventListener('click', () => {
-    termsPopup.style.display = 'none';
-});
+    function closeAllPopups() {
+        Object.values(popups).forEach(popup => popup.style.display = 'none');
+    }
+
+    function openPopup(popup) {
+        closeAllPopups();
+        popup.style.display = 'block';
+        document.getElementById('sidebar').classList.remove('show');
+        document.getElementById('sidebar-overlay').classList.remove('show');  // ✅ hide overlay properly
+    }
+
+    const buttonMapping = [
+        { ids: ['helpbtn', 'helpbtn-sidebar'], popup: popups.help },
+        { ids: ['aboutbtn', 'aboutbtn-sidebar'], popup: popups.about },
+        { ids: ['termsbtn', 'termsbtn-sidebar'], popup: popups.terms }
+    ];
+
+    buttonMapping.forEach(mapping => {
+        mapping.ids.forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.addEventListener('click', () => openPopup(mapping.popup));
+        });
+    });
+
+    document.getElementById('closeHelpBtn').addEventListener('click', closeAllPopups);
+    document.getElementById('closeAboutBtn').addEventListener('click', closeAllPopups);
+    document.getElementById('closeTermsBtn').addEventListener('click', closeAllPopups);
+}
